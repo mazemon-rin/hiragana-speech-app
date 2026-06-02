@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="ひらがな表" />
+    <title>ひらがな おしゃべり表</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="practice-area" aria-labelledby="app-title">
+        <div class="heading">
+          <p class="eyebrow">ひらがな</p>
+          <h1 id="app-title">おしゃべり五十音表</h1>
+          <p class="lead">文字を選んで言葉を作ると、日本語の音声で順番に読み上げます。</p>
+        </div>
+
+        <div class="status-panel" aria-live="polite">
+          <span class="status-label">さいごの文字</span>
+          <strong id="selected-kana">あ</strong>
+          <span id="speech-status">準備できています</span>
+        </div>
+
+        <div class="word-panel" aria-live="polite">
+          <span class="status-label">作った言葉</span>
+          <output id="word-output" aria-label="作った言葉">まだありません</output>
+        </div>
+
+        <div class="play-controls" aria-label="読み上げ操作">
+          <button id="start-button" class="action-button start" type="button">
+            <span aria-hidden="true">▶</span>
+            <span>開始</span>
+          </button>
+          <button id="stop-button" class="action-button stop" type="button">
+            <span aria-hidden="true">■</span>
+            <span>終了</span>
+          </button>
+          <button id="delete-button" class="action-button delete" type="button" aria-label="一文字消す">
+            <span aria-hidden="true">⌫</span>
+            <span>1文字消す</span>
+          </button>
+          <button id="clear-button" class="action-button clear" type="button">
+            <span aria-hidden="true">×</span>
+            <span>言葉を消す</span>
+          </button>
+        </div>
+
+        <div class="controls" aria-label="音声設定">
+          <button id="repeat-button" class="icon-button" type="button" aria-label="もう一度読む">
+            <span aria-hidden="true">↻</span>
+          </button>
+          <label class="voice-control">
+            <span>声</span>
+            <select id="voice-select" aria-label="声を選ぶ"></select>
+          </label>
+          <label class="range-control">
+            <span>速さ</span>
+            <input id="rate-control" type="range" min="0.7" max="1.2" step="0.1" value="0.9" />
+          </label>
+        </div>
+
+        <div id="kana-board" class="kana-board" aria-label="ひらがなと濁音の表"></div>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
