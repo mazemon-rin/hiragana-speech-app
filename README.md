@@ -8,3 +8,6 @@
 ## 公開ページ
 
 [おしゃべり五十音表を開く](https://mazemon-rin.github.io/hiragana-speech-app/)
+## ライセンス
+
+このプロジェクトは MIT License のもとで公開されています。
