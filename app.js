@@ -1,4 +1,4 @@
-const kanaColumns = [
+const hiraganaColumns = [
   ["あ", "い", "う", "え", "お"],
   ["か", "き", "く", "け", "こ"],
   ["さ", "し", "す", "せ", "そ"],
@@ -19,6 +19,10 @@ const kanaColumns = [
   ["っ", "ー", "、", "。", "　"],
 ];
 
+const katakanaColumns = hiraganaColumns.map((column) =>
+  column.map((kana) => toKatakana(kana)),
+);
+
 const board = document.querySelector("#kana-board");
 const selectedKana = document.querySelector("#selected-kana");
 const speechStatus = document.querySelector("#speech-status");
@@ -27,15 +31,35 @@ const startButton = document.querySelector("#start-button");
 const stopButton = document.querySelector("#stop-button");
 const deleteButton = document.querySelector("#delete-button");
 const clearButton = document.querySelector("#clear-button");
+const scriptToggleButton = document.querySelector("#script-toggle-button");
+const scrollRightButton = document.querySelector("#scroll-right-button");
+const scrollLeftButton = document.querySelector("#scroll-left-button");
 const repeatButton = document.querySelector("#repeat-button");
 const voiceSelect = document.querySelector("#voice-select");
 const rateControl = document.querySelector("#rate-control");
 
 let currentKana = "あ";
+let currentScript = "hiragana";
 let word = [];
 let isSpeakingWord = false;
 let wordReadToken = 0;
 let voices = [];
+
+function toKatakana(kana) {
+  return kana.replace(/[ぁ-ゖ]/g, (char) =>
+    String.fromCharCode(char.charCodeAt(0) + 0x60),
+  );
+}
+
+function toHiragana(kana) {
+  return kana.replace(/[ァ-ヶ]/g, (char) =>
+    String.fromCharCode(char.charCodeAt(0) - 0x60),
+  );
+}
+
+function getKanaColumns() {
+  return currentScript === "hiragana" ? hiraganaColumns : katakanaColumns;
+}
 
 function makeKanaButton(kana) {
   if (!kana) {
@@ -64,11 +88,13 @@ function makeKanaButton(kana) {
 }
 
 function isVoicedKana(kana) {
-  return "がぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽ".includes(kana);
+  return "がぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽガギグゲゴザジズゼゾダヂヅデドバビブベボパピプペポ".includes(
+    kana,
+  );
 }
 
 function isSmallKana(kana) {
-  return "ぁぃぅぇぉゃゅょっ".includes(kana);
+  return "ぁぃぅぇぉゃゅょっァィゥェォャュョッ".includes(kana);
 }
 
 function isPauseMark(kana) {
@@ -81,7 +107,8 @@ function getKanaLabel(kana) {
 
 function renderBoard() {
   const fragment = document.createDocumentFragment();
-  kanaColumns.flat().forEach((kana) => fragment.append(makeKanaButton(kana)));
+  board.innerHTML = "";
+  getKanaColumns().flat().forEach((kana) => fragment.append(makeKanaButton(kana)));
   board.append(fragment);
 }
 
@@ -249,6 +276,36 @@ function clearWord() {
   speechStatus.textContent = "全部消しました";
 }
 
+function toggleScript() {
+  stopSpeaking();
+  currentScript = currentScript === "hiragana" ? "katakana" : "hiragana";
+  const converter = currentScript === "hiragana" ? toHiragana : toKatakana;
+
+  currentKana = converter(currentKana);
+  word = word.map((kana) => converter(kana));
+  renderBoard();
+  setActiveKana(currentKana);
+  updateWordOutput();
+
+  const nextLabel = currentScript === "hiragana" ? "カタカナ" : "ひらがな";
+  const iconLabel = currentScript === "hiragana" ? "ア" : "あ";
+  scriptToggleButton.querySelector("span[aria-hidden='true']").textContent = iconLabel;
+  scriptToggleButton.querySelector("span:last-child").textContent = nextLabel;
+  board.setAttribute(
+    "aria-label",
+    currentScript === "hiragana" ? "ひらがなと濁音の表" : "カタカナと濁音の表",
+  );
+  speechStatus.textContent =
+    currentScript === "hiragana" ? "ひらがな表にしました" : "カタカナ表にしました";
+}
+
+function scrollBoard(direction) {
+  board.scrollBy({
+    left: direction * Math.max(180, board.clientWidth * 0.75),
+    behavior: "smooth",
+  });
+}
+
 renderBoard();
 populateVoices();
 updateWordOutput();
@@ -269,3 +326,6 @@ startButton.addEventListener("click", speakWord);
 stopButton.addEventListener("click", stopSpeaking);
 deleteButton.addEventListener("click", deleteLastKana);
 clearButton.addEventListener("click", clearWord);
+scriptToggleButton.addEventListener("click", toggleScript);
+scrollRightButton.addEventListener("click", () => scrollBoard(-1));
+scrollLeftButton.addEventListener("click", () => scrollBoard(1));

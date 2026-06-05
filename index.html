@@ -48,6 +48,10 @@
             <span aria-hidden="true">×</span>
             <span>言葉を消す</span>
           </button>
+          <button id="script-toggle-button" class="action-button script-toggle" type="button">
+            <span aria-hidden="true">ア</span>
+            <span>カタカナ</span>
+          </button>
         </div>
 
         <div class="controls" aria-label="音声設定">
@@ -62,6 +66,15 @@
             <span>速さ</span>
             <input id="rate-control" type="range" min="0.7" max="1.2" step="0.1" value="0.9" />
           </label>
+        </div>
+
+        <div class="board-scroll-controls" aria-label="文字表のスクロール">
+          <button id="scroll-right-button" class="scroll-button" type="button" aria-label="左へスクロール">
+            <span aria-hidden="true">←</span>
+          </button>
+          <button id="scroll-left-button" class="scroll-button" type="button" aria-label="右へスクロール">
+            <span aria-hidden="true">→</span>
+          </button>
         </div>
 
         <div id="kana-board" class="kana-board" aria-label="ひらがなと濁音の表"></div>

@@ -19,9 +19,10 @@
 
 body {
   margin: 0;
-  height: 100vh;
-  height: 100dvh;
-  overflow: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
   background:
     linear-gradient(135deg, rgba(217, 67, 67, 0.08), transparent 34%),
     linear-gradient(315deg, rgba(40, 124, 100, 0.12), transparent 36%),
@@ -49,8 +50,8 @@ input[type="range"] {
 
 .app-shell {
   display: grid;
-  height: 100vh;
-  height: 100dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
   place-items: center;
   padding:
     max(10px, env(safe-area-inset-top))
@@ -61,8 +62,6 @@ input[type="range"] {
 
 .practice-area {
   width: min(1180px, 100%);
-  max-height: calc(100vh - 20px);
-  max-height: calc(100dvh - 20px);
   padding: clamp(12px, 2vw, 18px);
   border: 1px solid rgba(216, 209, 196, 0.9);
   border-radius: 8px;
@@ -215,6 +214,12 @@ h1 {
   color: var(--ink);
 }
 
+.action-button.script-toggle {
+  border-color: var(--line);
+  background: #ffffff;
+  color: var(--ink);
+}
+
 .action-button.delete {
   border-color: var(--line);
   background: #ffffff;
@@ -253,6 +258,27 @@ select {
 input[type="range"] {
   width: 150px;
   accent-color: var(--accent);
+}
+
+.board-scroll-controls {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.scroll-button {
+  display: grid;
+  width: 44px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: 800;
 }
 
 .kana-board {
@@ -294,7 +320,8 @@ input[type="range"] {
 
 .kana-cell:active,
 .action-button:active,
-.icon-button:active {
+.icon-button:active,
+.scroll-button:active {
   transform: scale(0.98);
 }
 
@@ -393,8 +420,6 @@ input[type="range"] {
 
   .practice-area {
     min-height: auto;
-    max-height: calc(100vh - 16px);
-    max-height: calc(100dvh - 16px);
     padding: 10px;
   }
 
@@ -417,6 +442,15 @@ input[type="range"] {
 
   .action-button {
     flex: 1 1 120px;
+  }
+
+  .board-scroll-controls {
+    justify-content: stretch;
+  }
+
+  .scroll-button {
+    flex: 1 1 0;
+    height: 44px;
   }
 
   .kana-board {
@@ -490,7 +524,8 @@ input[type="range"] {
   .status-panel,
   .word-panel,
   .play-controls,
-  .controls {
+  .controls,
+  .board-scroll-controls {
     margin-bottom: 6px;
   }
 
