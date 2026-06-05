@@ -144,6 +144,10 @@ function getJapaneseVoices() {
 }
 
 function populateVoices() {
+  if (!canSpeak()) {
+    return;
+  }
+
   voices = getJapaneseVoices();
   voiceSelect.innerHTML = "";
 
@@ -258,6 +262,22 @@ function canSpeak() {
   return false;
 }
 
+function getDisplayScriptName() {
+  return currentScript === "hiragana" ? "ひらがな" : "カタカナ";
+}
+
+function getNextScriptName() {
+  return currentScript === "hiragana" ? "カタカナ" : "ひらがな";
+}
+
+function updateScriptToggleButton() {
+  scriptToggleButton.textContent = getNextScriptName();
+  scriptToggleButton.setAttribute(
+    "aria-label",
+    `${getNextScriptName()}に切り替える`,
+  );
+}
+
 function deleteLastKana() {
   if (isSpeakingWord) {
     return;
@@ -286,17 +306,13 @@ function toggleScript() {
   renderBoard();
   setActiveKana(currentKana);
   updateWordOutput();
+  updateScriptToggleButton();
 
-  const nextLabel = currentScript === "hiragana" ? "カタカナ" : "ひらがな";
-  const iconLabel = currentScript === "hiragana" ? "ア" : "あ";
-  scriptToggleButton.querySelector("span[aria-hidden='true']").textContent = iconLabel;
-  scriptToggleButton.querySelector("span:last-child").textContent = nextLabel;
   board.setAttribute(
     "aria-label",
     currentScript === "hiragana" ? "ひらがなと濁音の表" : "カタカナと濁音の表",
   );
-  speechStatus.textContent =
-    currentScript === "hiragana" ? "ひらがな表にしました" : "カタカナ表にしました";
+  speechStatus.textContent = `${getDisplayScriptName()}表にしました`;
 }
 
 function scrollBoard(direction) {
@@ -307,11 +323,12 @@ function scrollBoard(direction) {
 }
 
 renderBoard();
-populateVoices();
 updateWordOutput();
+updateScriptToggleButton();
 stopButton.disabled = true;
 
 if ("speechSynthesis" in window) {
+  populateVoices();
   speechSynthesis.addEventListener("voiceschanged", populateVoices);
 } else {
   voiceSelect.disabled = true;
