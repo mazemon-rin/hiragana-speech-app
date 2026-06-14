@@ -260,6 +260,15 @@ input[type="range"] {
   accent-color: var(--accent);
 }
 
+.copyright-notice {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: right;
+}
+
 .board-scroll-controls {
   display: flex;
   justify-content: flex-end;
@@ -457,6 +466,11 @@ input[type="range"] {
     gap: 5px;
     grid-auto-columns: minmax(40px, 1fr);
   }
+
+  .copyright-notice {
+    font-size: 0.72rem;
+    text-align: center;
+  }
 }
 
 @media (pointer: coarse) {
@@ -527,6 +541,10 @@ input[type="range"] {
   .controls,
   .board-scroll-controls {
     margin-bottom: 6px;
+  }
+
+  .copyright-notice {
+    margin-top: 6px;
   }
 
   .kana-cell {
