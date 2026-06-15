@@ -52,7 +52,8 @@ input[type="range"] {
   display: grid;
   min-height: 100vh;
   min-height: 100dvh;
-  place-items: center;
+  align-items: start;
+  justify-items: center;
   padding:
     max(10px, env(safe-area-inset-top))
     max(10px, env(safe-area-inset-right))
@@ -95,6 +96,36 @@ h1 {
   color: var(--muted);
   font-size: 0.9rem;
   line-height: 1.45;
+}
+
+.mode-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tab-button {
+  flex: 0 0 auto;
+  min-height: 42px;
+  min-width: 92px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 800;
+  padding: 0 12px;
+}
+
+.tab-button[aria-selected="true"] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #ffffff;
 }
 
 .status-panel {
@@ -220,6 +251,12 @@ h1 {
   color: var(--ink);
 }
 
+.action-button.favorite-add {
+  border-color: rgba(154, 107, 47, 0.34);
+  background: #fff8ea;
+  color: #6f4b1f;
+}
+
 .action-button.delete {
   border-color: var(--line);
   background: #ffffff;
@@ -258,6 +295,111 @@ select {
 input[type="range"] {
   width: 150px;
   accent-color: var(--accent);
+}
+
+.tab-panels {
+  margin-top: 4px;
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.is-active {
+  display: block;
+}
+
+.panel-heading {
+  margin-bottom: 8px;
+}
+
+.panel-heading h2,
+.template-section h3 {
+  margin: 0;
+  color: var(--accent-strong);
+  font-size: 1.05rem;
+  letter-spacing: 0;
+  line-height: 1.25;
+}
+
+.template-sections {
+  display: grid;
+  gap: 10px;
+}
+
+.template-section {
+  display: grid;
+  gap: 6px;
+}
+
+.phrase-list,
+.phrase-grid,
+.communication-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.phrase-grid {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.phrase-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.phrase-button,
+.phrase-remove-button,
+.communication-button {
+  min-height: 52px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--ink);
+  cursor: pointer;
+  font-weight: 800;
+  line-height: 1.25;
+  padding: 10px 12px;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.phrase-button {
+  font-size: 1.12rem;
+}
+
+.phrase-remove-button {
+  min-width: 72px;
+  background: #fff8f7;
+  color: var(--accent-strong);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.communication-grid {
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+}
+
+.communication-button {
+  min-height: 72px;
+  border-color: rgba(40, 124, 100, 0.28);
+  background: #f4fffb;
+  color: var(--green);
+  font-size: 1.18rem;
+  text-align: center;
+}
+
+.empty-state {
+  margin: 0;
+  padding: 14px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--muted);
+  font-weight: 700;
+  text-align: center;
 }
 
 .copyright-notice {
@@ -330,7 +472,11 @@ input[type="range"] {
 .kana-cell:active,
 .action-button:active,
 .icon-button:active,
-.scroll-button:active {
+.scroll-button:active,
+.tab-button:active,
+.phrase-button:active,
+.phrase-remove-button:active,
+.communication-button:active {
   transform: scale(0.98);
 }
 
@@ -449,8 +595,36 @@ input[type="range"] {
     align-items: stretch;
   }
 
+  .mode-tabs {
+    margin-right: -2px;
+    margin-left: -2px;
+  }
+
+  .tab-button {
+    min-width: 88px;
+    min-height: 46px;
+    font-size: 0.92rem;
+  }
+
   .action-button {
     flex: 1 1 120px;
+  }
+
+  .action-button.favorite-add {
+    flex-basis: 170px;
+  }
+
+  .phrase-row {
+    grid-template-columns: 1fr;
+  }
+
+  .phrase-remove-button {
+    min-height: 44px;
+  }
+
+  .phrase-grid,
+  .communication-grid {
+    grid-template-columns: 1fr;
   }
 
   .board-scroll-controls {
@@ -480,6 +654,10 @@ input[type="range"] {
   }
 
   .action-button,
+  .tab-button,
+  .phrase-button,
+  .phrase-remove-button,
+  .communication-button,
   .voice-control,
   .range-control {
     min-height: 44px;
@@ -537,6 +715,7 @@ input[type="range"] {
 
   .status-panel,
   .word-panel,
+  .mode-tabs,
   .play-controls,
   .controls,
   .board-scroll-controls {
@@ -554,5 +733,9 @@ input[type="range"] {
 
   .kana-board {
     grid-template-rows: repeat(5, minmax(36px, 1fr));
+  }
+
+  .communication-button {
+    min-height: 58px;
   }
 }
