@@ -20,6 +20,14 @@
           <p class="lead">文字を選んで言葉を作ると、日本語の音声で順番に読み上げます。</p>
         </div>
 
+        <nav class="mode-tabs" aria-label="メニュー">
+          <button class="tab-button" type="button" data-tab="kana" aria-selected="true">五十音</button>
+          <button class="tab-button" type="button" data-tab="favorites" aria-selected="false">お気に入り</button>
+          <button class="tab-button" type="button" data-tab="history" aria-selected="false">履歴</button>
+          <button class="tab-button" type="button" data-tab="templates" aria-selected="false">定型文</button>
+          <button class="tab-button" type="button" data-tab="communication" aria-selected="false">コミュニケーション</button>
+        </nav>
+
         <div class="status-panel" aria-live="polite">
           <span class="status-label">さいごの文字</span>
           <strong id="selected-kana">あ</strong>
@@ -51,6 +59,9 @@
           <button id="script-toggle-button" class="action-button script-toggle" type="button" aria-label="カタカナに切り替える">
             カタカナ
           </button>
+          <button id="favorite-add-button" class="action-button favorite-add" type="button">
+            ★お気に入り登録
+          </button>
         </div>
 
         <div class="controls" aria-label="音声設定">
@@ -67,16 +78,48 @@
           </label>
         </div>
 
-        <div class="board-scroll-controls" aria-label="文字表のスクロール">
-          <button id="scroll-right-button" class="scroll-button" type="button" aria-label="左へスクロール">
-            <span aria-hidden="true">←</span>
-          </button>
-          <button id="scroll-left-button" class="scroll-button" type="button" aria-label="右へスクロール">
-            <span aria-hidden="true">→</span>
-          </button>
-        </div>
+        <div class="tab-panels">
+          <section class="tab-panel is-active" data-panel="kana" aria-label="五十音">
+            <div class="board-scroll-controls" aria-label="文字表のスクロール">
+              <button id="scroll-right-button" class="scroll-button" type="button" aria-label="左へスクロール">
+                <span aria-hidden="true">←</span>
+              </button>
+              <button id="scroll-left-button" class="scroll-button" type="button" aria-label="右へスクロール">
+                <span aria-hidden="true">→</span>
+              </button>
+            </div>
 
-        <div id="kana-board" class="kana-board" aria-label="ひらがなと濁音の表"></div>
+            <div id="kana-board" class="kana-board" aria-label="ひらがなと濁音の表"></div>
+          </section>
+
+          <section class="tab-panel" data-panel="favorites" aria-label="お気に入り">
+            <div class="panel-heading">
+              <h2>お気に入り</h2>
+            </div>
+            <div id="favorites-list" class="phrase-list" aria-live="polite"></div>
+          </section>
+
+          <section class="tab-panel" data-panel="history" aria-label="履歴">
+            <div class="panel-heading">
+              <h2>履歴</h2>
+            </div>
+            <div id="history-list" class="phrase-list" aria-live="polite"></div>
+          </section>
+
+          <section class="tab-panel" data-panel="templates" aria-label="定型文">
+            <div class="panel-heading">
+              <h2>定型文</h2>
+            </div>
+            <div id="template-list" class="template-sections"></div>
+          </section>
+
+          <section class="tab-panel" data-panel="communication" aria-label="コミュニケーション">
+            <div class="panel-heading">
+              <h2>コミュニケーション</h2>
+            </div>
+            <div id="communication-grid" class="communication-grid"></div>
+          </section>
+        </div>
 
         <p class="copyright-notice">
           © 2026 mazemon-rin. 無断転載・複製・改変・再配布を禁じます。
