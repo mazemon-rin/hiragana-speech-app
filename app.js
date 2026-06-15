@@ -23,6 +23,35 @@ const katakanaColumns = hiraganaColumns.map((column) =>
   column.map((kana) => toKatakana(kana)),
 );
 
+const templatePhrases = [
+  {
+    category: "あいさつ",
+    phrases: ["おはようございます", "こんにちは", "ありがとうございます"],
+  },
+  {
+    category: "体調",
+    phrases: ["頭が痛いです", "気分が悪いです", "水が飲みたいです"],
+  },
+  {
+    category: "介護",
+    phrases: ["トイレに行きたいです", "横になりたいです"],
+  },
+];
+
+const communicationPhrases = [
+  { label: "🍚 食事", phrase: "食事がしたいです" },
+  { label: "🚻 トイレ", phrase: "トイレに行きたいです" },
+  { label: "💊 薬", phrase: "薬をください" },
+  { label: "🛏️ 休憩", phrase: "休憩したいです" },
+  { label: "🚑 痛い", phrase: "痛いです" },
+  { label: "🚰 水", phrase: "水が飲みたいです" },
+  { label: "🙋 助けてください", phrase: "助けてください" },
+];
+
+const favoritesStorageKey = "hiraganaSpeechFavorites";
+const historyStorageKey = "hiraganaSpeechHistory";
+const historyLimit = 20;
+
 const board = document.querySelector("#kana-board");
 const selectedKana = document.querySelector("#selected-kana");
 const speechStatus = document.querySelector("#speech-status");
@@ -32,11 +61,18 @@ const stopButton = document.querySelector("#stop-button");
 const deleteButton = document.querySelector("#delete-button");
 const clearButton = document.querySelector("#clear-button");
 const scriptToggleButton = document.querySelector("#script-toggle-button");
+const favoriteAddButton = document.querySelector("#favorite-add-button");
 const scrollRightButton = document.querySelector("#scroll-right-button");
 const scrollLeftButton = document.querySelector("#scroll-left-button");
 const repeatButton = document.querySelector("#repeat-button");
 const voiceSelect = document.querySelector("#voice-select");
 const rateControl = document.querySelector("#rate-control");
+const tabButtons = document.querySelectorAll(".tab-button");
+const tabPanels = document.querySelectorAll(".tab-panel");
+const favoritesList = document.querySelector("#favorites-list");
+const historyList = document.querySelector("#history-list");
+const templateList = document.querySelector("#template-list");
+const communicationGrid = document.querySelector("#communication-grid");
 
 let currentKana = "あ";
 let currentScript = "hiragana";
@@ -44,6 +80,8 @@ let word = [];
 let isSpeakingWord = false;
 let wordReadToken = 0;
 let voices = [];
+let favorites = readStoredList(favoritesStorageKey);
+let history = readStoredList(historyStorageKey);
 
 function toKatakana(kana) {
   return kana.replace(/[ぁ-ゖ]/g, (char) =>
@@ -59,6 +97,25 @@ function toHiragana(kana) {
 
 function getKanaColumns() {
   return currentScript === "hiragana" ? hiraganaColumns : katakanaColumns;
+}
+
+function readStoredList(key) {
+  try {
+    const value = JSON.parse(localStorage.getItem(key));
+    return Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveStoredList(key, items) {
+  try {
+    localStorage.setItem(key, JSON.stringify(items));
+    return true;
+  } catch {
+    speechStatus.textContent = "端末内に保存できませんでした";
+    return false;
+  }
 }
 
 function makeKanaButton(kana) {
@@ -127,6 +184,7 @@ function updateWordOutput() {
   startButton.disabled = word.length === 0;
   deleteButton.disabled = word.length === 0 || isSpeakingWord;
   clearButton.disabled = word.length === 0 || isSpeakingWord;
+  favoriteAddButton.disabled = word.length === 0 || isSpeakingWord;
 }
 
 function addKana(kana) {
@@ -225,6 +283,7 @@ function speakWord() {
   const readingWord = word.join("");
   const utterance = createUtterance(readingWord);
   utterance.onstart = () => {
+    addHistory(readingWord);
     speechStatus.textContent = `${readingWord} を読んでいます`;
   };
   utterance.onend = () => {
@@ -296,6 +355,167 @@ function clearWord() {
   speechStatus.textContent = "全部消しました";
 }
 
+function getCurrentWordText() {
+  return word.join("").replace(/[ 　]+/g, " ").trim();
+}
+
+function setWordFromText(text, statusText = "言葉を入力しました") {
+  const phrase = text.trim();
+  if (!phrase) {
+    return;
+  }
+
+  stopSpeaking();
+  word = Array.from(phrase);
+  const lastKana = word[word.length - 1];
+  if (lastKana) {
+    setActiveKana(lastKana);
+  }
+  updateWordOutput();
+  speechStatus.textContent = statusText;
+}
+
+function addFavorite() {
+  const phrase = getCurrentWordText();
+  if (!phrase) {
+    speechStatus.textContent = "登録する言葉がありません";
+    return;
+  }
+
+  if (favorites.includes(phrase)) {
+    speechStatus.textContent = "すでにお気に入りにあります";
+    return;
+  }
+
+  favorites = [phrase, ...favorites];
+  if (saveStoredList(favoritesStorageKey, favorites)) {
+    renderFavorites();
+    speechStatus.textContent = "お気に入りに登録しました";
+  }
+}
+
+function removeFavorite(phrase) {
+  favorites = favorites.filter((item) => item !== phrase);
+  if (saveStoredList(favoritesStorageKey, favorites)) {
+    renderFavorites();
+    speechStatus.textContent = "お気に入りから削除しました";
+  }
+}
+
+function addHistory(phrase) {
+  const text = phrase.trim();
+  if (!text) {
+    return;
+  }
+
+  history = [text, ...history.filter((item) => item !== text)].slice(0, historyLimit);
+  if (saveStoredList(historyStorageKey, history)) {
+    renderHistory();
+  }
+}
+
+function makePhraseButton(phrase, className = "phrase-button") {
+  const button = document.createElement("button");
+  button.className = className;
+  button.type = "button";
+  button.textContent = phrase;
+  button.addEventListener("click", () =>
+    setWordFromText(phrase, `${phrase} を入力しました`),
+  );
+  return button;
+}
+
+function renderEmptyState(container, message) {
+  container.innerHTML = "";
+  const empty = document.createElement("p");
+  empty.className = "empty-state";
+  empty.textContent = message;
+  container.append(empty);
+}
+
+function renderFavorites() {
+  favoritesList.innerHTML = "";
+  if (favorites.length === 0) {
+    renderEmptyState(favoritesList, "お気に入りはまだありません");
+    return;
+  }
+
+  favorites.forEach((phrase) => {
+    const row = document.createElement("div");
+    row.className = "phrase-row";
+    row.append(makePhraseButton(phrase));
+
+    const removeButton = document.createElement("button");
+    removeButton.className = "phrase-remove-button";
+    removeButton.type = "button";
+    removeButton.textContent = "削除";
+    removeButton.addEventListener("click", () => removeFavorite(phrase));
+    row.append(removeButton);
+
+    favoritesList.append(row);
+  });
+}
+
+function renderHistory() {
+  historyList.innerHTML = "";
+  if (history.length === 0) {
+    renderEmptyState(historyList, "履歴はまだありません");
+    return;
+  }
+
+  history.forEach((phrase) => {
+    const row = document.createElement("div");
+    row.className = "phrase-row";
+    row.append(makePhraseButton(phrase));
+    historyList.append(row);
+  });
+}
+
+function renderTemplates() {
+  const fragment = document.createDocumentFragment();
+  templatePhrases.forEach(({ category, phrases }) => {
+    const section = document.createElement("section");
+    section.className = "template-section";
+
+    const heading = document.createElement("h3");
+    heading.textContent = category;
+    section.append(heading);
+
+    const list = document.createElement("div");
+    list.className = "phrase-grid";
+    phrases.forEach((phrase) => list.append(makePhraseButton(phrase)));
+    section.append(list);
+
+    fragment.append(section);
+  });
+  templateList.append(fragment);
+}
+
+function renderCommunication() {
+  const fragment = document.createDocumentFragment();
+  communicationPhrases.forEach(({ label, phrase }) => {
+    const button = document.createElement("button");
+    button.className = "communication-button";
+    button.type = "button";
+    button.textContent = label;
+    button.addEventListener("click", () => {
+      setWordFromText(phrase, `${phrase} を入力しました`);
+      speakWord();
+    });
+    fragment.append(button);
+  });
+  communicationGrid.append(fragment);
+}
+
+function switchTab(tabName) {
+  tabButtons.forEach((button) => {
+    button.setAttribute("aria-selected", String(button.dataset.tab === tabName));
+  });
+  tabPanels.forEach((panel) => {
+    panel.classList.toggle("is-active", panel.dataset.panel === tabName);
+  });
+}
+
 function toggleScript() {
   stopSpeaking();
   currentScript = currentScript === "hiragana" ? "katakana" : "hiragana";
@@ -325,6 +545,10 @@ function scrollBoard(direction) {
 renderBoard();
 updateWordOutput();
 updateScriptToggleButton();
+renderFavorites();
+renderHistory();
+renderTemplates();
+renderCommunication();
 stopButton.disabled = true;
 
 if ("speechSynthesis" in window) {
@@ -344,5 +568,9 @@ stopButton.addEventListener("click", stopSpeaking);
 deleteButton.addEventListener("click", deleteLastKana);
 clearButton.addEventListener("click", clearWord);
 scriptToggleButton.addEventListener("click", toggleScript);
+favoriteAddButton.addEventListener("click", addFavorite);
 scrollRightButton.addEventListener("click", () => scrollBoard(-1));
 scrollLeftButton.addEventListener("click", () => scrollBoard(1));
+tabButtons.forEach((button) => {
+  button.addEventListener("click", () => switchTab(button.dataset.tab));
+});
