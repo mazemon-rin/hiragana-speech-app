@@ -62,6 +62,9 @@
           <button id="favorite-add-button" class="action-button favorite-add" type="button">
             ★お気に入り登録
           </button>
+          <button id="romaji-toggle-button" class="action-button romaji-toggle" type="button" aria-pressed="false">
+            ローマ字表示
+          </button>
         </div>
 
         <div class="controls" aria-label="音声設定">
@@ -71,6 +74,14 @@
           <label class="voice-control">
             <span>声</span>
             <select id="voice-select" aria-label="声を選ぶ"></select>
+          </label>
+          <label class="voice-control">
+            <span>声の種類</span>
+            <select id="voice-gender-select" aria-label="声の種類を選ぶ">
+              <option value="auto">自動</option>
+              <option value="male">男性</option>
+              <option value="female">女性</option>
+            </select>
           </label>
           <label class="range-control">
             <span>速さ</span>

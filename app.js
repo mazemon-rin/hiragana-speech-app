@@ -48,8 +48,96 @@ const communicationPhrases = [
   { label: "🙋 助けてください", phrase: "助けてください" },
 ];
 
+const romajiMap = {
+  あ: "a",
+  い: "i",
+  う: "u",
+  え: "e",
+  お: "o",
+  か: "ka",
+  き: "ki",
+  く: "ku",
+  け: "ke",
+  こ: "ko",
+  さ: "sa",
+  し: "shi",
+  す: "su",
+  せ: "se",
+  そ: "so",
+  た: "ta",
+  ち: "chi",
+  つ: "tsu",
+  て: "te",
+  と: "to",
+  な: "na",
+  に: "ni",
+  ぬ: "nu",
+  ね: "ne",
+  の: "no",
+  は: "ha",
+  ひ: "hi",
+  ふ: "fu",
+  へ: "he",
+  ほ: "ho",
+  ま: "ma",
+  み: "mi",
+  む: "mu",
+  め: "me",
+  も: "mo",
+  や: "ya",
+  ゆ: "yu",
+  よ: "yo",
+  ら: "ra",
+  り: "ri",
+  る: "ru",
+  れ: "re",
+  ろ: "ro",
+  わ: "wa",
+  を: "wo",
+  ん: "n",
+  が: "ga",
+  ぎ: "gi",
+  ぐ: "gu",
+  げ: "ge",
+  ご: "go",
+  ざ: "za",
+  じ: "ji",
+  ず: "zu",
+  ぜ: "ze",
+  ぞ: "zo",
+  だ: "da",
+  ぢ: "ji",
+  づ: "zu",
+  で: "de",
+  ど: "do",
+  ば: "ba",
+  び: "bi",
+  ぶ: "bu",
+  べ: "be",
+  ぼ: "bo",
+  ぱ: "pa",
+  ぴ: "pi",
+  ぷ: "pu",
+  ぺ: "pe",
+  ぽ: "po",
+  ぁ: "a",
+  ぃ: "i",
+  ぅ: "u",
+  ぇ: "e",
+  ぉ: "o",
+  ゃ: "ya",
+  ゅ: "yu",
+  ょ: "yo",
+  っ: "small tsu",
+  ー: "-",
+  "、": ",",
+  "。": ".",
+  "　": "space",
+};
+
 const favoritesStorageKey = "hiraganaSpeechFavorites";
 const historyStorageKey = "hiraganaSpeechHistory";
+const romajiStorageKey = "hiraganaSpeechShowRomaji";
 const historyLimit = 20;
 
 const board = document.querySelector("#kana-board");
@@ -62,10 +150,12 @@ const deleteButton = document.querySelector("#delete-button");
 const clearButton = document.querySelector("#clear-button");
 const scriptToggleButton = document.querySelector("#script-toggle-button");
 const favoriteAddButton = document.querySelector("#favorite-add-button");
+const romajiToggleButton = document.querySelector("#romaji-toggle-button");
 const scrollRightButton = document.querySelector("#scroll-right-button");
 const scrollLeftButton = document.querySelector("#scroll-left-button");
 const repeatButton = document.querySelector("#repeat-button");
 const voiceSelect = document.querySelector("#voice-select");
+const voiceGenderSelect = document.querySelector("#voice-gender-select");
 const rateControl = document.querySelector("#rate-control");
 const tabButtons = document.querySelectorAll(".tab-button");
 const tabPanels = document.querySelectorAll(".tab-panel");
@@ -82,6 +172,7 @@ let wordReadToken = 0;
 let voices = [];
 let favorites = readStoredList(favoritesStorageKey);
 let history = readStoredList(historyStorageKey);
+let showRomaji = localStorage.getItem(romajiStorageKey) === "true";
 
 function toKatakana(kana) {
   return kana.replace(/[ぁ-ゖ]/g, (char) =>
@@ -97,6 +188,10 @@ function toHiragana(kana) {
 
 function getKanaColumns() {
   return currentScript === "hiragana" ? hiraganaColumns : katakanaColumns;
+}
+
+function getRomaji(kana) {
+  return romajiMap[toHiragana(kana)] || "";
 }
 
 function readStoredList(key) {
@@ -136,7 +231,19 @@ function makeKanaButton(kana) {
     .filter(Boolean)
     .join(" ");
   button.type = "button";
-  button.textContent = getKanaLabel(kana);
+  if (showRomaji) {
+    const kanaLabel = document.createElement("span");
+    kanaLabel.className = "kana-main";
+    kanaLabel.textContent = getKanaLabel(kana);
+
+    const romajiLabel = document.createElement("span");
+    romajiLabel.className = "kana-romaji";
+    romajiLabel.textContent = getRomaji(kana);
+
+    button.append(kanaLabel, romajiLabel);
+  } else {
+    button.textContent = getKanaLabel(kana);
+  }
   button.dataset.kana = kana;
   button.setAttribute("aria-label", `${getKanaLabel(kana)} を言葉に入れる`);
   button.setAttribute("aria-pressed", kana === currentKana ? "true" : "false");
@@ -201,6 +308,70 @@ function getJapaneseVoices() {
     .filter((voice) => voice.lang.toLowerCase().startsWith("ja"));
 }
 
+function getVoiceProfile(voice) {
+  const name = voice.name.toLowerCase();
+  const maleKeywords = [
+    "male",
+    "man",
+    "otoya",
+    "ichiro",
+    "takeshi",
+    "taro",
+    "hattori",
+    "男性",
+    "男",
+  ];
+  const femaleKeywords = [
+    "female",
+    "woman",
+    "kyoko",
+    "sakura",
+    "sayaka",
+    "haruka",
+    "nanami",
+    "mei",
+    "女性",
+    "女",
+  ];
+
+  if (femaleKeywords.some((keyword) => name.includes(keyword))) {
+    return "female";
+  }
+
+  if (maleKeywords.some((keyword) => name.includes(keyword))) {
+    return "male";
+  }
+
+  return "unknown";
+}
+
+function applyVoiceGenderPreference(shouldAnnounce = false) {
+  const preference = voiceGenderSelect.value;
+  if (preference === "auto" || voices.length === 0) {
+    return;
+  }
+
+  const preferredVoiceIndex = voices.findIndex(
+    (voice) => getVoiceProfile(voice) === preference,
+  );
+
+  if (preferredVoiceIndex >= 0) {
+    voiceSelect.value = String(preferredVoiceIndex);
+    if (shouldAnnounce) {
+      speechStatus.textContent =
+        preference === "male" ? "男性候補の声を選びました" : "女性候補の声を選びました";
+    }
+    return;
+  }
+
+  if (shouldAnnounce) {
+    speechStatus.textContent =
+      preference === "male"
+        ? "この端末では男性音声が見つかりませんでした"
+        : "この端末では女性音声が見つかりませんでした";
+  }
+}
+
 function populateVoices() {
   if (!canSpeak()) {
     return;
@@ -222,6 +393,7 @@ function populateVoices() {
 
   const defaultIndex = voices.findIndex((voice) => voice.default);
   voiceSelect.value = String(Math.max(defaultIndex, 0));
+  applyVoiceGenderPreference(false);
 }
 
 function createUtterance(kana) {
@@ -334,6 +506,15 @@ function updateScriptToggleButton() {
   scriptToggleButton.setAttribute(
     "aria-label",
     `${getNextScriptName()}に切り替える`,
+  );
+}
+
+function updateRomajiToggleButton() {
+  romajiToggleButton.textContent = showRomaji ? "かなだけ" : "ローマ字表示";
+  romajiToggleButton.setAttribute("aria-pressed", String(showRomaji));
+  romajiToggleButton.setAttribute(
+    "aria-label",
+    showRomaji ? "ローマ字表示を消す" : "ローマ字を表示する",
   );
 }
 
@@ -535,6 +716,17 @@ function toggleScript() {
   speechStatus.textContent = `${getDisplayScriptName()}表にしました`;
 }
 
+function toggleRomaji() {
+  showRomaji = !showRomaji;
+  localStorage.setItem(romajiStorageKey, String(showRomaji));
+  renderBoard();
+  setActiveKana(currentKana);
+  updateRomajiToggleButton();
+  speechStatus.textContent = showRomaji
+    ? "ローマ字を表示しました"
+    : "ローマ字を非表示にしました";
+}
+
 function scrollBoard(direction) {
   board.scrollBy({
     left: direction * Math.max(180, board.clientWidth * 0.75),
@@ -545,6 +737,7 @@ function scrollBoard(direction) {
 renderBoard();
 updateWordOutput();
 updateScriptToggleButton();
+updateRomajiToggleButton();
 renderFavorites();
 renderHistory();
 renderTemplates();
@@ -556,6 +749,7 @@ if ("speechSynthesis" in window) {
   speechSynthesis.addEventListener("voiceschanged", populateVoices);
 } else {
   voiceSelect.disabled = true;
+  voiceGenderSelect.disabled = true;
   repeatButton.disabled = true;
   startButton.disabled = true;
   stopButton.disabled = true;
@@ -569,6 +763,8 @@ deleteButton.addEventListener("click", deleteLastKana);
 clearButton.addEventListener("click", clearWord);
 scriptToggleButton.addEventListener("click", toggleScript);
 favoriteAddButton.addEventListener("click", addFavorite);
+romajiToggleButton.addEventListener("click", toggleRomaji);
+voiceGenderSelect.addEventListener("change", () => applyVoiceGenderPreference(true));
 scrollRightButton.addEventListener("click", () => scrollBoard(-1));
 scrollLeftButton.addEventListener("click", () => scrollBoard(1));
 tabButtons.forEach((button) => {

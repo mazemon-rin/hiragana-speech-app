@@ -257,6 +257,18 @@ h1 {
   color: #6f4b1f;
 }
 
+.action-button.romaji-toggle {
+  border-color: rgba(65, 91, 168, 0.32);
+  background: #f5f7ff;
+  color: #344585;
+}
+
+.action-button.romaji-toggle[aria-pressed="true"] {
+  border-color: #415ba8;
+  background: #415ba8;
+  color: #ffffff;
+}
+
 .action-button.delete {
   border-color: var(--line);
   background: #ffffff;
@@ -452,6 +464,7 @@ input[type="range"] {
   min-height: 42px;
   min-width: 44px;
   place-items: center;
+  gap: 2px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #ffffff;
@@ -467,6 +480,27 @@ input[type="range"] {
     border-color 160ms ease,
     background-color 160ms ease,
     box-shadow 160ms ease;
+}
+
+.kana-main {
+  display: block;
+  font-size: 0.95em;
+  line-height: 1;
+}
+
+.kana-romaji {
+  display: block;
+  color: var(--muted);
+  font-size: 0.42em;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.kana-cell[aria-pressed="true"] .kana-romaji,
+.kana-cell.is-small[aria-pressed="true"] .kana-romaji,
+.kana-cell.is-voiced[aria-pressed="true"] .kana-romaji,
+.kana-cell.is-pause[aria-pressed="true"] .kana-romaji {
+  color: rgba(255, 255, 255, 0.86);
 }
 
 .kana-cell:active,
@@ -612,6 +646,10 @@ input[type="range"] {
 
   .action-button.favorite-add {
     flex-basis: 170px;
+  }
+
+  .action-button.romaji-toggle {
+    flex-basis: 150px;
   }
 
   .phrase-row {
